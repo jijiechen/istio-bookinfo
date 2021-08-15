@@ -1,6 +1,4 @@
-using System;
-
-namespace Reviews
+namespace Reviews.Controllers
 {
     public class Review
     {

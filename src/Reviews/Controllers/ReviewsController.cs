@@ -13,9 +13,9 @@ namespace Reviews.Controllers
         private readonly HttpClient _httpClient;
         private readonly Settings _settings;
 
-        public ReviewsController(HttpClient httpClient, Settings settings)
+        public ReviewsController(IHttpClientFactory httpClientFactory, Settings settings)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClientFactory.CreateClient("microservices");
             _settings = settings;
         }
 
@@ -64,9 +64,7 @@ namespace Reviews.Controllers
             };
 
             var domain = string.IsNullOrEmpty(_settings.ServiceDomain) ? "" : "." + _settings.ServiceDomain;
-            var request = new TracedHttpRequestMessage() { ParentRequestHeaders = HttpContext.Request.Headers };
-            request.RequestUri = new Uri($"http://{_settings.RatingsHostName}{domain}:9080/ratings/{productId}");
-            
+            var request = new HttpRequestMessage(HttpMethod.Get, $"http://{_settings.RatingsHostName}{domain}:9080/ratings/{productId}");
             try
             {
                 var resp = await _httpClient.SendAsync(request);
@@ -78,9 +76,11 @@ namespace Reviews.Controllers
                 {
                     ratings[0].Error = null;
                     ratings[0].StarCounts = respObj.ratings.Reviewer1;
+                    ratings[0].StarColor = _settings.StarColor;
 
                     ratings[1].Error = null;
                     ratings[1].StarCounts = respObj.ratings.Reviewer2;
+                    ratings[1].StarColor = _settings.StarColor;
                 }
 
                 return ratings;

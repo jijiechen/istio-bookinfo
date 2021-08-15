@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Reviews.Controllers
 {
@@ -11,11 +12,13 @@ namespace Reviews.Controllers
     public class ReviewsController : ControllerBase
     {
         private readonly HttpClient _httpClient;
+        private readonly ILogger<ReviewsController> _logger;
         private readonly Settings _settings;
 
-        public ReviewsController(IHttpClientFactory httpClientFactory, Settings settings)
+        public ReviewsController(ILogger<ReviewsController> logger, IHttpClientFactory httpClientFactory, Settings settings)
         {
             _httpClient = httpClientFactory.CreateClient("microservices");
+            _logger = logger;
             _settings = settings;
         }
 
@@ -87,7 +90,7 @@ namespace Reviews.Controllers
             }
             catch(Exception ex)
             {
-                // todo: log errors
+                _logger.LogWarning(ex, "Error when invoking ratings service at {@url}", request.RequestUri);
             }
             
             return ratings;
